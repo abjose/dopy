@@ -180,69 +180,7 @@ class Dopy:
                 k.attrs['do'] = 1
             self.vis(0).attrs['do'] = 1
 
-    """
-    def do(self, tag=None):
-        ''' Do marked tasks or tasks in tag, if specified. '''
-        inp = None
-        tasks = [self.tasks[0]]+[t for t in self.tasks[1:] if t.get('mark')]
-        if tag != None: tasks = self.getTagged(tag)
-        tasks.reverse()
-        with open('words.txt') as f:
-            while inp != 'stop' and tasks != []:
-                self.save()
-                w = []
-                f.seek(0)
-                for line in f:
-                    w.append(random.choice(line.split(',')).strip())
-                pre = (w[0]+' '+ w[1]+'!').upper()+' '+w[2].title()+' '+w[3]+':'
-                print Display.CLEARSCRN + str(pre)
-                print Display.GREEN + str(tasks[0]) + Display.NRML
-                inp = raw_input("(add|split|done)")
-                if inp == 'add':
-                    read = raw_input("What task to add?: ")
-                    self.add(read)
-                elif inp == 'skip': 
-                    self.split(tasks.pop(0))
-                elif inp == 'done': 
-                    tasks.pop(0).attrs['strk'] = 1
-                    self.clean()
-            self.clean()
-            print Display.CLEARSCRN+'QUEST COMPLETE!'
-
-    def split(self, t):
-        print Display.CLEARSCRN + "SINNER! SPLIT TASK INTO SEQUENTIAL SUBTASKS!"
-        tag = None
-        descs = []
-        if len(t.tags.keys()) > 1:
-            print "SCRUM! WHICH TAG WILL YOU ADD TO?:"
-            print t.tags.keys()
-            while tag == None:
-                inp = raw_input()
-                if inp in t.tags.keys():
-                    tag = inp
-                else:
-                    print 'YOU FAIL! TAG MUST BE ONE OF:', t.tags.keys()
-        elif len(t.tags.keys()) == 1: tag = t.tags.keys()[0]
-        inp = None
-        print 'ENTER SILENCE TO CEASE ATONEMENT.'
-        postfx = '!:'
-        while inp != '' or len(descs) < 2:
-            print 'ATONE' + postfx
-            inp = raw_input()
-            if inp == '' and len(descs) < 2:
-                print 'THOU MUST ATONE YET!'
-            elif inp != '':
-                descs.append(inp)
-            postfx = ' AGAIN!:'
-        for i,d in enumerate(descs):
-            nt = Task(d)
-            if tag != None:
-                pos = t.tags[tag]+i
-                self.updateTag(tag, pos, insert=True)
-                nt.tags[tag] = pos
-            self.tasks.append(nt)
-        self.tasks.remove(t)
-    """
+    # removed old split and (silly) do code - consider re-implementing
 
     def getPage(self):
         pages = Display.paginate([t for t in self.tasks if t.get('hide') == 0])

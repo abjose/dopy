@@ -44,6 +44,11 @@ class Task:
             info += k + '|' + str(self.tags[k]) + ','
         return info[:-1] + ': ' + self.desc
 
+
+
+
+
+
 class Dopy:
 
     def __init__(self):
@@ -52,20 +57,16 @@ class Dopy:
         self.page = 0
 
     def add(self, desc): 
-        if self.showtags == []:
-            self.tasks.append(Task(desc))
-        else:
-            t = Task(desc)
-            for tag in showtags:
-                self.tag(0, tag, t)
+        t = Task(desc)
+        # automatically add tag if showtag
+        for tag in self.showtags:
+            t.tags[tag] = 0
+        self.tasks.append(t)
                 
-
-    def tag(self, n, tag, taskobj=None):
-        if 0 <= n < self.vis_len() and tag != '' and ',' not in tag and '|' not in tag: # should regex...
-            t = self.vis(n)
-            if taskobj != None: t = taskobj
-            if tag not in t.tags.keys():
-                t.tags[tag] = self.updateTag(tag)
+    def tag(self, n, tag):
+        forbid = [',', '|']
+        if tag != '' and any((c in forbid) for c in tag):
+            self.vis(n).tags[tag] = 0
 
     def mark(self, n):
         self.setAttr(n, 'mark')
@@ -75,138 +76,83 @@ class Dopy:
         
     def bold(self, n):
         self.setAttr(n, 'bold')
+
+    def skp(self, n):
+        """ Mark task n for splitting """
+        self.setAttr(n, 'skp')
         
     def show(self, tag):
         if tag == '': self.showtags = []
-        else: self.showtags.append(tag)
-        self.clean()
+        # limit to one tag for now
+        else: self.showtags = [tag]
 
-    def skp(self, n):
-        self.setAttr(n, 'skp')
+    def rm(self, t=None):
+        if t: t.attrs['rm'] = 1
+        else: map(self.rm, [t for t in self.tasks if t.get('strk')])
 
-    def rm(self, n):
-        if n == -1:
-            for t in [t for t in self.tasks if t.get('strk')]:
-                t.attrs['rm'] = 1
-                self.clean()
+    # REWRITE SPLIT...MAKE SIMPLER
 
-    def split(self, n):
-        print Display.CLEARSCRN + 'Enter 2+ sequential subtasks. CR to append.'
+    def setAttr(self, n, a):
         t = self.vis(n)
-        tag = None
-        descs = []        
-        if len(t.tags.keys()) > 1:
-            print "Which task to add to?"
-            print t.tags.keys()
-            while tag == None:
-                inp = raw_input()
-                if inp in t.tags.keys() or inp == '':
-                    tag = inp
-                else:
-                    print 'Tag must be one of:\n', t.tags.keys()
-        elif len(t.tags.keys()) == 1: tag = t.tags.keys()[0]
-        inp = None
-        while inp != '' or len(descs) < 2:
-            print 'New task:'
-            inp = raw_input()
-            if inp == '' and len(descs) < 2:
-                print 'Including old task. Need >=1 more task'
-                if t.desc not in descs: descs.append(t.desc)
-            elif inp != '':
-                descs.append(inp)
-        for i,d in enumerate(descs):
-            nt = Task(d)
-            if tag != None and tag != '':
-                pos = t.tags[tag]+i
-                self.updateTag(tag, pos, insert=True)
-                nt.tags[tag] = pos
-            self.tasks.append(nt)
-        self.tasks.remove(t)
-
-    def setAttr(self, n, a, complement=False):
-        """ If complement, sets everything but the tasks indicated """
-        # ignore complement for number n, for now
-        if n >= self.vis_len() or n < 0: return
-        if not type(n) == int:# or not n.isdigit():
-            for t in self.getTagged(n, complement): t.attrs[a] += 1
-        else: self.vis(n).attrs[a] += 1
-        self.clean()
-
-    def getTagged(self, tag, complement=False):
-        if complement:
-            return [t for t in self.tasks if tag not in t.tags.keys()]
-        return [t for t in self.tasks if tag in t.tags.keys()]
-
-    def getAttrd(self, attr, complement=False):
-        if complement:
-            return [t for t in self.tasks if attr in t.attrs.keys() and not t.attrs[attr]]
-        return [t for t in self.tasks if attr in t.attrs.keys() and t.attrs[attr]]
-
-
-    def updateTag(self, tag, pos=None, insert=False):
-        """ Given added/removed tag, gives rank (if added) or updates ranks
-        (if removed - i.e. pos != None) """
-        tags = self.getTagged(tag)
-        if tags == []:
-            return 0 # 0 works whether inserting, removing, appending?
-        ranks = [t.tags[tag] for t in tags]
-        if pos == None: return max(ranks) + 1
-        if insert:
-            for t in tags:
-                if t.tags[tag] >= pos: t.tags[tag] += 1
-        elif not pos in ranks: # only change if nothing else at same rank
-            for t in tags:
-                if t.tags[tag] > pos: t.tags[tag] -= 1
+        if t != None: t.attrs[a] += 1
 
     def vis(self, n):
         """ Return nth visible task """
-        ct = 0
-        for i in range(len(self.tasks)):
-            if self.tasks[i].attrs['hide'] == 0:
-                if ct == n: return self.tasks[i]
-                ct += 1
+        v = [t for t in self.tasks if not t.get('hide')]
+        if n < len(v):
+            return v[n]
         return None
 
     def vis_len(self):
-        ct = 0
-        for t in self.tasks:
-            if t.get('hide') == 0: ct += 1
-        return ct
+        """ Return length of visible task list """
+        return len([t for t in self.tasks if not t.get('hide')])
 
     def do(self):
         ''' Do marked tasks '''
-        if True:#self.getAttrd('do') == []:
+        if True:
             for k in self.getAttrd('mark'):
                 k.attrs['do'] = 1
             self.vis(0).attrs['do'] = 1
 
+    def hide(self, t):
+        t.attrs['hide'] = 1
+
+    def unhide(self, t):
+        t.attrs['hide'] = 0
+
     # removed old split and (silly) do code - consider re-implementing
 
     def getPage(self):
-        pages = Display.paginate([t for t in self.tasks if t.get('hide') == 0])
+        pages = Display.paginate([t for t in self.tasks if not t.get('hide')])
         self.page = max(0, min(len(pages)-1, self.page))
         return pages[self.page]
 
     def clean(self):
-        for t in self.tasks:
-            if t.get('rm') == 1: 
-                self.tasks.remove(t)
-                for tag in t.tags.keys():
-                    self.updateTag(tag, t.tags[tag])
+        # remove tasks marked for removal
+        map(self.tasks.remove, [t for t in self.tasks if t.get('rm')])
 
-        for t in self.tasks:
-            if t.get('skp'):
-                self.split(t)
+        # split tasks marked for splitting
+        #map(self.tasks.split, [t for t in self.tasks if t.get('skp')])
 
-            if self.showtags != []:
-                t.attrs['hide'] = 1
-                for tg in t.tags:
-                    if tg in self.showtags: t.attrs['hide'] = 0
-            else:
-                if 0 in t.tags.values() or t.tags.keys() == []: 
-                    t.attrs['hide'] = 0
-                else: 
-                    t.attrs['hide'] = 1
+        # rebuild visibile 'sub-list'
+        map(self.unhide, self.tasks)
+        if self.showtags != []:
+            tag = self.showtags[0] # assumes one max showtag
+            map(self.hide, [t for t in self.tasks if not tag in t.tags])
+        # if no showtags, show only first of each tag set (and untagged)
+        else:
+            vis_tags = []
+            for t in self.tasks:
+                tag = t.tags.keys() # assumes one tag
+                if tag == []:
+                    continue
+                if tag not in vis_tags:
+                    vis_tags.append(tag)
+                else:
+                    self.hide(t)
+
+        # mod attributes
+        for t in self.tasks:
             for k in t.attrs.keys(): t.attrs[k] %= 2
             
     def save(self, name='todo.txt'):
@@ -227,4 +173,4 @@ class Dopy:
 
 if __name__ == '__main__':
     d = Dopy()
-    d.do()
+    print "initialized Dopy object..."

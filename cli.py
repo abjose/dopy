@@ -51,9 +51,10 @@ class Interface(cmd.Cmd):
 
     def do_rm(self, line):
         """ Removes all stricken tasks permanently """
-        n, t = self.strip_index(line)
-        for k in n:
-            self.d.rm(k)
+        self.d.rm()
+        #n, t = self.strip_index(line)
+        #for k in n:
+        #    self.d.rm(k)
 
     def do_showtag(self, line):
         """ Takes tag: show members of that tag; no args, show all """

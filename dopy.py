@@ -1,12 +1,19 @@
  # less is less
 from display import Display
+from time import time
 import random, re
 
 class Task:
     def __init__(self, desc, load=None):
+        # having separate tags/attrs/stats dicts seems a bit inelegant
+        # currently their individual purposes are as follows:
+        # attrs: boolean line-state variables (underlined, bolded, etc.)
+        # tags: (potentially ranked) task tags, to ease display
+        # stats: variables related to task (time estimate, due date, etc.)
         self.desc = desc
         self.tags = dict() 
         self.attrs = dict(mark=0, strk=0, bold=0, hide=0, skp=0, rm=0, do=0)
+        self.stats = dict(due=0., est=0.)
         if load != None:
             self.read(load)
         
@@ -18,12 +25,10 @@ class Task:
         if a == 'desc': return self.desc
         if a == 'tags': return '['+'|'.join([k for k in self.tags.keys()])+']'
         if a in self.attrs.keys(): return self.attrs[a]
+        if a in self.stats.keys(): return self.stats[a]
         else: raise Exception("Bad attr name.")
 
     def read(self, s):
-        #frmt = ('[01]/'*len(self.tags.keys()))[:-1] + '[^:]*: *' # use {m}?
-        #m = re.match(frmt, s)
-        #if m != None: # preformatted
         if ':' in s:
             s = s.split(':')
             self.desc = s[1].strip()
@@ -32,14 +37,17 @@ class Task:
             for t in info:
                 k,v = t.split('|')
                 if k in self.attrs.keys(): self.attrs[k] = int(v)
+                elif k in self.stats.keys(): self.stats[k] = float(v)
                 else: self.tags[k] = int(v)
         else: # user-entered/unformatted
             self.desc = s.strip()
 
     def save(self):
         info = ''
-        for k in self.attrs.keys(): # can assume ordered if get this way?
+        for k in self.attrs.keys():
             info += k + '|' + str(self.attrs[k]) + ','
+        for k in self.stats.keys():
+            info += k + '|' + str(self.stats[k]) + ','
         for k in self.tags.keys():
             info += k + '|' + str(self.tags[k]) + ','
         return info[:-1] + ': ' + self.desc
@@ -64,7 +72,7 @@ class Dopy:
         self.tasks.append(t)
                 
     def tag(self, n, tag):
-        forbid = [',', '|']
+        forbid = [',', '|', 'date', 'due', 'est']
         if tag != '' and any((c in forbid) for c in tag):
             self.vis(n).tags[tag] = 0
 
@@ -96,6 +104,10 @@ class Dopy:
         t = self.vis(n)
         if t != None: t.attrs[a] += 1
 
+    def setStat(self, n, a, val):
+        t = self.vis(n)
+        if t != None: t.stats[a] = val
+
     def vis(self, n):
         """ Return nth visible task """
         v = [t for t in self.tasks if not t.get('hide')]
@@ -120,7 +132,7 @@ class Dopy:
     def unhide(self, t):
         t.attrs['hide'] = 0
 
-    # removed old split and (silly) do code - consider re-implementing
+    # removed old split and (fun) do code - consider re-implementing
 
     def getPage(self):
         pages = Display.paginate([t for t in self.tasks if not t.get('hide')])

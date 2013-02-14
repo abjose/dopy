@@ -1,4 +1,5 @@
 import cmd
+import time
 from dopy import Dopy
 
 class Interface(cmd.Cmd):    
@@ -74,11 +75,25 @@ class Interface(cmd.Cmd):
         for k in n:
             self.d.strk(k)
 
-    def do_splt(self, line):
-        ''' Split a task into 2+. '''
-        n, t = self.strip_index(line)
-        for i in n:
-            self.d.split(i)
+    def do_due(self, line):
+        """ 'due n HHMM month/day/year' sets n's due date to that spec'd """
+        n = int(line.split()[0])-1
+        fmt = '%H%M %m/%d/%y'
+        date = time.mktime(time.strptime(' '.join(line.split()[1:]), fmt))
+        print date
+        self.d.setStat(n, 'due', date)
+
+    def do_est(self, line):
+        """ 'est n hours' sets est of n to be hours """
+        # forces focus to one element for now...
+        n = int(line.split()[0])-1
+        self.d.setStat(n, 'est', float(line.split()[1]))
+
+    #def do_splt(self, line):
+    #    ''' Split a task into 2+. '''
+    #    n, t = self.strip_index(line)
+    #    for i in n:
+    #        self.d.split(i) 
 
     #def do_reset(self, line):
     #    for t in self.d.tasks:

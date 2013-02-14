@@ -21,8 +21,7 @@ class Display:
     BGREEN = '\033[102m'
     BGRED = '\033[101m'
     BGBLACK = '\033[100m'
-    # foreground colors
-    CYAN = '\033[96m'
+    # foreground colors    CYAN = '\033[96m'
     MAGENTA = '\033[95m'
     BLUE = '\033[94m'
     YELLOW = '\033[93m'

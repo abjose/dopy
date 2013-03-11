@@ -44,7 +44,7 @@ class Interface(cmd.Cmd):
         self.d.add(line.replace(':',' -'))
     
     def do_tag(self, line):
-        """ 'tg [n...] [t...]' tags task n with tag t """
+        """ 'tg [n...] [t...]' tags tasks n... with tags t... """
         n, t = self.strip_index(line)
         for k in n:
             for l in t:

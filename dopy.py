@@ -73,7 +73,7 @@ class Dopy:
                 
     def tag(self, n, tag):
         forbid = [',', '|', 'date', 'due', 'est']
-        if tag != '' and any((c in forbid) for c in tag):
+        if tag != '' and not any((c in forbid) for c in tag):
             self.vis(n).tags[tag] = 0
 
     def mark(self, n):

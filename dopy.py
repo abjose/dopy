@@ -12,7 +12,7 @@ class Task:
         # stats: variables related to task (time estimate, due date, etc.)
         self.desc = desc
         self.tags = dict() 
-        self.attrs = dict(mark=0, strk=0, bold=0, hide=0, skp=0, rm=0, do=0)
+        self.attrs = dict(mark=0, strk=0, bold=0, hide=0, urgent=0, skp=0, rm=0, do=0)
         self.stats = dict(due=0., est=0.)
         if load != None:
             self.read(load)
@@ -84,6 +84,9 @@ class Dopy:
         
     def bold(self, n):
         self.setAttr(n, 'bold')
+
+    def urgent(self, n):
+        self.setAttr(n, 'urgent')
 
     def skp(self, n):
         """ Mark task n for splitting """

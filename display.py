@@ -7,12 +7,6 @@ class Display:
     # https://en.wikipedia.org/wiki/ANSI_escape_code
     # terminal/cursor  modification
     CLEARSCRN = '\x1b[H\x1b[2J'
-    # effects
-    STRIKE = '\033[9m'
-    BOLD = '\033[1m'
-    NEGATIVE = '\033[7m'
-    UNDERLINE = '\033[4m'
-    # underline?
     # background colors
     BGCYAN = '\033[106m'
     BGMAGENTA = '\033[105m'
@@ -21,13 +15,21 @@ class Display:
     BGREEN = '\033[102m'
     BGRED = '\033[101m'
     BGBLACK = '\033[100m'
-    # foreground colors    CYAN = '\033[96m'
+    # foreground colors    
+    CYAN = '\033[96m'
     MAGENTA = '\033[95m'
     BLUE = '\033[94m'
     YELLOW = '\033[93m'
     GREEN = '\033[92m'
     RED = '\033[91m'
     BLACK = '\033[90m'
+    # effects
+    STRIKE = '\033[9m'
+    BOLD = '\033[1m'
+    NEGATIVE = '\033[7m'
+    UNDERLINE = '\033[4m'
+    BLINK = '\033[5m' #doesn't seem to be supported
+    URGENT = RED+BOLD
     # other
     NRML = '\033[0m'
 
@@ -92,7 +94,8 @@ class Display:
                 if t.get('mark') or r == 0: fx += Display.NEGATIVE
                 if t.get('strk'): fx += Display.STRIKE
                 if t.get('bold'): fx += Display.UNDERLINE
-                if do and not t.get('do'): fx += Display.BLACK
+                if t.get('urgent'): fx += Display.URGENT
+                elif do and not t.get('do'): fx += Display.BLACK
                 elif r%2==0: fx += Display.MAGENTA#YELLOW
                 else: fx += Display.BLUE#GREEN
                 out.append(fx+' '.join([row[c][i] for c in cols])+Display.NRML)

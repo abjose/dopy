@@ -75,6 +75,12 @@ class Interface(cmd.Cmd):
         for k in n:
             self.d.strk(k)
 
+    def do_urgent(self, line):
+        """ 'urg n1 n2 ...' marks n1, n2 ... as urgent """
+        n, t = self.strip_index(line)
+        for k in n:
+            self.d.urgent(k)
+
     def do_due(self, line):
         """ 'due n HHMM month/day/year' sets n's due date to that spec'd """
         n = int(line.split()[0])-1

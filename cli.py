@@ -90,7 +90,7 @@ class Interface(cmd.Cmd):
         self.d.setStat(n, 'due', date)
 
     def do_est(self, line):
-        """ 'est n hours' sets est of n to be hours """
+        """ 'est n hours' sets completion time estimate of n to be hours """
         # forces focus to one element for now...
         n = int(line.split()[0])-1
         self.d.setStat(n, 'est', float(line.split()[1]))
@@ -110,6 +110,12 @@ class Interface(cmd.Cmd):
         n, t = self.strip_index(line)
         for k in n:
             self.d.bold(k)
+
+    def do_ins(self, line):
+        """ 'ins n m' inserts task n before current line m """
+        n, t = self.strip_index(line, SORT=False)
+        if len(n) == 2 and len(t) == 0 and n[1] != 0:
+            self.d.insert(n[0], n[1])
         
     def do_n(self, line):
         """ Go to the next page, if more than one page to show """
@@ -127,12 +133,16 @@ class Interface(cmd.Cmd):
                 self.d.do(t)
         else: self.d.do()
 
-    def strip_index(self, line):
+    def strip_index(self, line, SORT=True):
+        """ Return split-out numbers (assumed to be line #s) and tags """
         if line == '': return [-1], [line]
         args = line.split()
         n = [int(k)-1 for k in args if k.isdigit()]
         t = [k.replace(':',' -') for k in args if not k.isdigit()]
-        return sorted(n, reverse=True), t
+        if SORT:
+            return sorted(n, reverse=True), t
+        else:
+            return n, t
 
 if __name__ == '__main__':
     # start cli

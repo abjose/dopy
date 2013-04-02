@@ -101,6 +101,12 @@ class Dopy:
         if t: t.attrs['rm'] = 1
         else: map(self.rm, [t for t in self.tasks if t.get('strk')])
 
+    def insert(self, n, m):
+        """ Move task n to line m """
+        t1 = self.vis(n)
+        t2 = self.vis(m)
+        self.moveRelative(t1, t2)
+
     # REWRITE SPLIT...MAKE SIMPLER
 
     def setAttr(self, n, a):
@@ -134,6 +140,12 @@ class Dopy:
 
     def unhide(self, t):
         t.attrs['hide'] = 0
+
+    def moveRelative(self, t1, t2):
+        """ Move t1 to before t2 in task list """
+        # error handling???
+        self.tasks.remove(t1)
+        self.tasks.insert(self.tasks.index(t2), t1)
 
     # removed old split and (fun) do code - consider re-implementing
 

@@ -29,7 +29,7 @@ class Display:
     NEGATIVE = '\033[7m'
     UNDERLINE = '\033[4m'
     BLINK = '\033[5m' #doesn't seem to be supported
-    URGENT = RED+BOLD
+    URGENT = RED
     # other
     NRML = '\033[0m'
 

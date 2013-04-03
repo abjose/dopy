@@ -165,8 +165,8 @@ class Dopy:
 
     def checkShareTag(self, t1, t2):
         """ Return true if t1 and t2 share any tag """
-        t1k = t1.get('tags').keys()
-        t2k = t2.get('tags').keys()
+        t1k = t1.tags.keys()
+        t2k = t2.tags.keys()
         return any([a == b for a in t1k for b in t2k])
 
     def moveRelative(self, t1, t2):
@@ -192,10 +192,10 @@ class Dopy:
                 # iterate over separate list so won't worry about iteration
                 for sub in subtasks:
                     # make sure component has a time estimate
-                    if sub.get('est') == 0:
+                    if sub.get('est') <= 1e-5:
                         sub.stats['est'] = default_est
                     # make sure comes after title task
-                    if self.tasks.index(t1) < self.tasks.index(sub):
+                    if self.tasks.index(t1) > self.tasks.index(sub):
                         self.moveRelative(t1, sub)
                     # add time estimate to sum of estimates
                     proj_est += sub.get('est')

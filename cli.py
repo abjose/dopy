@@ -85,14 +85,28 @@ class Interface(cmd.Cmd):
         n = int(line.split()[0])-1
         fmt = '%H%M %m/%d/%y'
         date = time.mktime(time.strptime(' '.join(line.split()[1:]), fmt))
-        print date
+        #print date
         self.d.setStat(n, 'due', date)
 
     def do_est(self, line):
-        """ 'est n d' sets completion time estimate of n to be days """
+        """ 'est n d' sets completion time estimate of n to be hours """
         # forces focus to one element for now...
         n = int(line.split()[0])-1
         self.d.setStat(n, 'est', float(line.split()[1]))
+
+    def do_proj(self, line):
+        """ 'proj n d' marks task n as a project due on date d """
+        # lazy, should make general 'extract date' function
+        n = int(line.split()[0])-1
+        fmt = '%H%M %m/%d/%y'
+        date = time.mktime(time.strptime(' '.join(line.split()[1:]), fmt))
+        self.d.makeProject(n, date)
+
+    def do_prog(self, line):
+        """ 'prog n h' strikes out subtask n as having taken h hours """
+        n = int(line.split()[0])-1
+        hours = float(''.join(line.split()[1:]))
+        self.d.markProgress(n, hours)
 
     #def do_splt(self, line):
     #    ''' Split a task into 2+. '''

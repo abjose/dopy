@@ -12,8 +12,8 @@ class Task:
         # stats: variables related to task (time estimate, due date, etc.)
         self.desc = desc
         self.tags = dict() 
-        self.attrs = dict(mark=0, strk=0, bold=0, hide=0, urgent=0, skp=0, rm=0, do=0)
-        self.stats = dict(due=0., est=0.)
+        self.attrs = dict(mark=0, strk=0, bold=0, hide=0, urgent=0, skp=0, rm=0, do=0, proj=0)
+        self.stats = dict(due=0., est=0., spent=0.)
         if load != None:
             self.read(load)
         
@@ -109,7 +109,27 @@ class Dopy:
         t2 = self.vis(m)
         self.moveRelative(t1, t2)
 
+    def makeProject(self, n, d):
+        """ Mark task n as a project with due date d. """
+        self.setAttr(n, 'proj')
+        self.setStat(n, 'due', d)
+
+    def markProgress(self, n, h):
+        """ Complete task n, which actually took h hours. If part of project 
+        update other tasks in project to reflect time estimate error. """
+        self.strk(n)
+        t1 = self.vis(n)
+        err = float(h)/t1.get('est')
+        # if shared tag, update t2's time estimate
+        for t2 in self.tasks:
+            if self.checkShareTag(t1, t2):
+                if t2.get('proj'):
+                    t2.stats['spent'] += h
+                else:
+                    t2.stats['est'] = t2.get('est') * err
+                
     # REWRITE SPLIT...MAKE SIMPLER
+    """  """
 
     def setAttr(self, n, a):
         t = self.vis(n)
@@ -143,11 +163,43 @@ class Dopy:
     def unhide(self, t):
         t.attrs['hide'] = 0
 
+    def checkShareTag(self, t1, t2):
+        """ Return true if t1 and t2 share any tag """
+        t1k = t1.get('tags').keys()
+        t2k = t2.get('tags').keys()
+        return any([a == b for a in t1k for b in t2k])
+
     def moveRelative(self, t1, t2):
         """ Move t1 to before t2 in task list """
         # error handling???
         self.tasks.remove(t1)
         self.tasks.insert(self.tasks.index(t2), t1)
+
+    def updateProjects(self):
+        """ Make sure all projects adhere to some rules:
+        1) Title task always before component tasks
+        2) All components have a time estimate
+        3) Project time estimate reflects sum of components
+        4) ..."""
+        default_est = 3.; # hours
+        for t1 in self.tasks:
+            if t1.get('proj'):
+                proj_est = 0
+                subtasks = set()
+                for t2 in self.tasks:
+                    if t2.get('proj') == 0 and self.checkShareTag(t1, t2):
+                        subtasks.add(t2)
+                # iterate over separate list so won't worry about iteration
+                for sub in subtasks:
+                    # make sure component has a time estimate
+                    if sub.get('est') == 0:
+                        sub.stats['est'] = default_est
+                    # make sure comes after title task
+                    if self.tasks.index(t1) < self.tasks.index(sub):
+                        self.moveRelative(t1, sub)
+                    # add time estimate to sum of estimates
+                    proj_est += sub.get('est')
+                t1.stats['est'] = proj_est
 
     # removed old split and (fun) do code - consider re-implementing
 
@@ -191,6 +243,9 @@ class Dopy:
         # mod attributes
         for t in self.tasks:
             for k in t.attrs.keys(): t.attrs[k] %= 2
+
+        # update projects
+        self.updateProjects()
             
     def save(self, name='todo.txt'):
         with open(name, 'w') as f:

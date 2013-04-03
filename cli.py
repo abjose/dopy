@@ -89,7 +89,7 @@ class Interface(cmd.Cmd):
         self.d.setStat(n, 'due', date)
 
     def do_est(self, line):
-        """ 'est n hours' sets completion time estimate of n to be hours """
+        """ 'est n d' sets completion time estimate of n to be days """
         # forces focus to one element for now...
         n = int(line.split()[0])-1
         self.d.setStat(n, 'est', float(line.split()[1]))

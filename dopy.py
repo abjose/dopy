@@ -63,13 +63,15 @@ class Dopy:
         self.tasks = []
         self.showtags = []
         self.page = 0
+        self.task_added = True # hacky way to move to newest page on task add
 
-    def add(self, desc): 
+    def add(self, desc):
         t = Task(desc)
         # automatically add tag if showtag
         for tag in self.showtags:
             t.tags[tag] = 0
         self.tasks.append(t)
+        self.task_added = 1
                 
     def tag(self, n, tag):
         forbid = [',', '|', 'date', 'due', 'est']
@@ -150,8 +152,16 @@ class Dopy:
     # removed old split and (fun) do code - consider re-implementing
 
     def getPage(self):
+        # should always bring focus to page tag is being added on?
+        # or only if on page before? (i.e. 'spilled over')
+        # could have an 'added' flag, set by add, cleared by this
+        # and if set, go to newest page...
         pages = Display.paginate([t for t in self.tasks if not t.get('hide')])
-        self.page = max(0, min(len(pages)-1, self.page))
+        if(self.task_added):
+            self.page = len(pages)-1
+        else:
+            self.page = max(0, min(len(pages)-1, self.page))
+        self.task_added = False
         return pages[self.page]
 
     def clean(self):

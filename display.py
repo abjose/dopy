@@ -12,7 +12,7 @@ class Display:
     BGMAGENTA = '\033[105m'
     BGBLUE = '\033[104m'
     BGYELLOW = '\033[103m'
-    BGREEN = '\033[102m'
+    BGGREEN = '\033[102m'
     BGRED = '\033[101m'
     BGBLACK = '\033[100m'
     # foreground colors    
@@ -46,13 +46,13 @@ class Display:
         # include vector of weights describing what 'portion' of remaining
         # spaces large strings get? (i.e. 'greediness')
 
-        # list of (name, weight) tuples
         if len(tasks) == 0: return ['Nothing to show.']
 
         # set do
         do = False
         for k in tasks: 
             if k.get('do'): do = True
+        # list of (name, weight) tuples
         names = [('tags', 1), ('desc', 1)]
         
         lists = [[str(i) for i in range(1, len(tasks)+1)]] # insert IDs
@@ -62,17 +62,34 @@ class Display:
         widths = [max([len(k) for k in lists[j]]) for j in range(len(lists))]
 
         r,c = Display.getTerminalSize()
+        r -= 1 # to hack in a title line later
         max_avg = c / len(widths)
 
         small = [w for w in widths if w < max_avg]
         large = [w for w in widths if w >= max_avg]
         max_w = c - (sum(small) + len(small))
         if large != []: max_w /= len(large)
-        rows = Display.getRows(lists, 
-                               [min(max_w, w) for w in small+large],
-                               tasks, do)
+        final_w = [min(max_w, w) for w in small+large]
+        rows = Display.getRows(lists, final_w, tasks, do)
         r -= 1
-        pages = ['\n'.join(rows[r*a:r*(a+1)]) for a in range(len(rows)/r + 1)]
+        # also need the -1 after len(rows) to get pages to update properly...
+        # so hacky.
+        pages = ['\n'.join(rows[r*a:r*(a+1)]) for a in range((len(rows)-1)/r+1)]
+
+        # Add a title line in the grossest possible way
+        title = Display.GREEN + Display.BOLD + Display.UNDERLINE
+        # add in number over task numbers...not actually task attribute
+        title += ('{:<'+str(final_w[0])+'}').format('#') + ' '
+        # add in capitalized titles for task attributes
+        for i, title_w in enumerate(final_w[1:]):
+            title += ('{:<'+str(title_w+1)+'}').format(names[i][0].upper())
+        # now add to all pages, adding in pagenumbers as you go
+        for i in range(len(pages)):
+            pagestring = str(i+1) + '/' + str(len(pages))
+            pagedtitle = title[:-(len(pagestring)+1)] + pagestring
+            pages[i] = pagedtitle + '\n' + pages[i]
+        # wait...what happens if there's only space for a title page?
+        # thankfully can't make terminal that small on my computer...hmm.
         return pages
     
     @staticmethod
@@ -90,7 +107,7 @@ class Display:
             row = [Display.block(l[c][r], w[c], h) for c in cols]
             for i in range(h):
                 t = tasks[r]
-                fx = ''
+                fx = Display.NRML
                 if t.get('mark') or r == 0: fx += Display.NEGATIVE
                 if t.get('strk'): fx += Display.STRIKE
                 if t.get('bold'): fx += Display.UNDERLINE

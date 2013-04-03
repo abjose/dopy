@@ -12,7 +12,6 @@ class Interface(cmd.Cmd):
         self.d = Dopy()
         self.d.load()
         self.d.clean()
-        # do something to make sure tag ranks are continuous starting at 0?
         print self.d.getPage()
     
     def postloop(self):

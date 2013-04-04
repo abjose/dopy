@@ -53,10 +53,11 @@ class Display:
         for k in tasks: 
             if k.get('do'): do = True
         # list of (name, weight) tuples
+        #names = [('tags', 1), ('ec', 1),('spent', 1),('est', 1), ('desc', 1)]
         names = [('tags', 1), ('desc', 1)]
         
         lists = [[str(i) for i in range(1, len(tasks)+1)]] # insert IDs
-        lists.extend([[t.get(names[j][0]) for t in tasks] 
+        lists.extend([[str(t.get(names[j][0])) for t in tasks] 
                       for j in range(len(names))])
 
         widths = [max([len(k) for k in lists[j]]) for j in range(len(lists))]

@@ -1,5 +1,6 @@
 import cmd
-import time
+#import time
+from datetime import datetime, timedelta
 from dopy import Dopy
 
 class Interface(cmd.Cmd):    
@@ -84,7 +85,8 @@ class Interface(cmd.Cmd):
         """ 'due n HHMM month/day/year' sets n's due date to that spec'd """
         n = int(line.split()[0])-1
         fmt = '%H%M %m/%d/%y'
-        date = time.mktime(time.strptime(' '.join(line.split()[1:]), fmt))
+        #date = time.mktime(time.strptime(' '.join(line.split()[1:]), fmt))
+        date = datetime.strptime(' '.join(line.split()[1:]), fmt)
         #print date
         self.d.setStat(n, 'due', date)
 
@@ -95,15 +97,16 @@ class Interface(cmd.Cmd):
         self.d.setStat(n, 'est', float(line.split()[1]))
 
     def do_proj(self, line):
-        """ 'proj n d' marks task n as a project due on date d """
+        """ 'proj n d' marks task n as a project due in d days """
         # lazy, should make general 'extract date' function
         n = int(line.split()[0])-1
-        fmt = '%H%M %m/%d/%y'
-        date = time.mktime(time.strptime(' '.join(line.split()[1:]), fmt))
+        #fmt = '%H%M %m/%d/%y'
+        #date = datetime.strptime(' '.join(line.split()[1:]), fmt)
+        date = datetime.now() + timedelta(days=float(line.split()[1]))
         self.d.makeProject(n, date)
 
     def do_prog(self, line):
-        """ 'prog n h' strikes out subtask n as having taken h hours """
+        """ 'prog n h' updates task n as having taken h hours of work """
         n = int(line.split()[0])-1
         hours = float(''.join(line.split()[1:]))
         self.d.markProgress(n, hours)
@@ -152,6 +155,7 @@ class Interface(cmd.Cmd):
         args = line.split()
         n = [int(k)-1 for k in args if k.isdigit()]
         t = [k.replace(':',' -') for k in args if not k.isdigit()]
+        t = [k for k in args if not k.isdigit()]
         if SORT:
             return sorted(n, reverse=True), t
         else:
